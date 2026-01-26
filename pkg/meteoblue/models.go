@@ -14,10 +14,6 @@ func UnmarshalCurrentForecast(data []byte) (CurrentForecast, error) {
 	return r, err
 }
 
-func (r *CurrentForecast) Marshal() ([]byte, error) {
-	return json.Marshal(r)
-}
-
 type CurrentForecast struct {
 	Metadata    metadata    `json:"metadata"`
 	Units       units       `json:"units"`
@@ -44,7 +40,7 @@ type metadata struct {
 	Latitude              float64 `json:"latitude"`
 	ModelrunUTC           string  `json:"modelrun_utc"`
 	Longitude             float64 `json:"longitude"`
-	UTCTimeoffset         int64   `json:"utc_timeoffset"`
+	UTCTimeoffset         float64   `json:"utc_timeoffset"`
 	GenerationTimeMS      float64 `json:"generation_time_ms"`
 }
 
