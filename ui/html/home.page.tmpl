@@ -1,0 +1,137 @@
+{{template "base" .}}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {{define "title"}}Сравнение погоды в городах{{end}}
+</head>
+<body>
+    {{define "header"}}
+        <h1>Сравнение погоды в городах</h1>
+        <p class="description">Добавьте города для сравнения текущих погодных условий. Данные будут обновляться автоматически.</p>
+    {{end}}
+
+    {{define "main"}}
+        <section class="controls">
+            <input type="text" class="city-input" id="cityInput" placeholder="Введите название города...">
+            <button class="btn" id="addCityBtn">Добавить город</button>
+            <button class="btn" id="clearAllBtn">Очистить все</button>
+        </section>
+
+        <section class="comparison-container" id="weatherContainer">
+            <!-- Города будут добавляться динамически -->
+            <div class="empty-state" id="emptyState">
+                Пока не добавлено ни одного города. Введите название города и нажмите "Добавить город".
+            </div>
+        </section>
+    {{end}}
+
+    <footer>
+        {{define "footer"}}Сайт для сравнения погоды &copy; 2023 | Данные о погоде будут загружаться с вашего Go-бэкенда{{end}}
+    </footer>
+
+    <script>
+        // Базовая логика для демонстрации работы интерфейса
+        // В реальном проекте будет заменена на взаимодействие с Go-бэкендом
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const cityInput = document.getElementById('cityInput');
+            const addCityBtn = document.getElementById('addCityBtn');
+            const clearAllBtn = document.getElementById('clearAllBtn');
+            const weatherContainer = document.getElementById('weatherContainer');
+            const emptyState = document.getElementById('emptyState');
+
+            // Пример данных о погоде (в вашем проекте будут приходить с бэкенда)
+            const sampleWeatherData = {
+                "temperature": "+15°C",
+                "feels_like": "+13°C",
+                "humidity": "65%",
+                "wind_speed": "5 м/с",
+                "pressure": "760 мм рт. ст.",
+                "condition": "Облачно"
+            };
+
+            // Функция для добавления карточки города
+            function addCityCard(cityName) {
+                // Скрываем сообщение о пустом состоянии
+                emptyState.style.display = 'none';
+
+                // Создаем карточку города
+                const card = document.createElement('div');
+                card.className = 'weather-card';
+                card.innerHTML = `
+                    <div class="city-header">
+                        <div class="city-name">${cityName}</div>
+                        <button class="remove-btn" data-city="${cityName}">×</button>
+                    </div>
+                    <div class="weather-info">
+                        <div class="temp">${sampleWeatherData.temperature}</div>
+                        <div class="condition">${sampleWeatherData.condition}</div>
+                        <div class="weather-item">
+                            <div class="weather-label">Ощущается как</div>
+                            <div class="weather-value">${sampleWeatherData.feels_like}</div>
+                        </div>
+                        <div class="weather-item">
+                            <div class="weather-label">Влажность</div>
+                            <div class="weather-value">${sampleWeatherData.humidity}</div>
+                        </div>
+                        <div class="weather-item">
+                            <div class="weather-label">Ветер</div>
+                            <div class="weather-value">${sampleWeatherData.wind_speed}</div>
+                        </div>
+                        <div class="weather-item">
+                            <div class="weather-label">Давление</div>
+                            <div class="weather-value">${sampleWeatherData.pressure}</div>
+                        </div>
+                    </div>
+                `;
+
+                // Добавляем карточку в контейнер
+                weatherContainer.appendChild(card);
+
+                // Добавляем обработчик удаления города
+                const removeBtn = card.querySelector('.remove-btn');
+                removeBtn.addEventListener('click', function() {
+                    card.remove();
+                    // Если карточек не осталось, показываем пустое состояние
+                    if (weatherContainer.children.length === 1) {
+                        emptyState.style.display = 'block';
+                    }
+                });
+            }
+
+            // Обработчик добавления города
+            addCityBtn.addEventListener('click', function() {
+                const cityName = cityInput.value.trim();
+                if (cityName) {
+                    addCityCard(cityName);
+                    cityInput.value = '';
+                    cityInput.focus();
+                }
+            });
+
+            // Добавление города по нажатию Enter
+            cityInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addCityBtn.click();
+                }
+            });
+
+            // Обработчик очистки всех городов
+            clearAllBtn.addEventListener('click', function() {
+                // Удаляем все карточки городов
+                const cityCards = document.querySelectorAll('.weather-card');
+                cityCards.forEach(card => card.remove());
+
+                // Показываем сообщение о пустом состоянии
+                emptyState.style.display = 'block';
+            });
+
+            // Добавим несколько примеров городов для демонстрации
+            addCityCard('Москва');
+            addCityCard('Санкт-Петербург');
+        });
+    </script>
+</body>
+</html>

@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/eklipsan/forumeather/pkg/meteoblue"
 )
 
 
 func main() {
-	// test := meteoblue.NewLocation("60.1695", "24.9354", "TestLocation")
 	makeevka := meteoblue.NewLocation(48.0478,37.9258, "Makeevka")
 
 	result, err := makeevka.GetCurrentForecast()
@@ -19,4 +19,14 @@ func main() {
 
 	fmt.Println(result)
 
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/", Home)
+
+	fileServer := http.FileServer(NeuteredFileSystem{http.Dir("./ui/static/")})
+	mux.Handle("/static", http.NotFoundHandler())
+	mux.Handle("/static/", http.StripPrefix("/static/", fileServer))
+
+
+	http.ListenAndServe(":8080", mux)
 }
