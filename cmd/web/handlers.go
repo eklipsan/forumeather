@@ -8,16 +8,23 @@ import (
 
 
 func (a Application) Home(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		a.notFound(w)
+		return
+	}
 	files := []string{
 		"./ui/html/home.page.tmpl",
 		"./ui/html/base.layout.tmpl",
 	}
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
-		a.ErrorLog.Println(err)
+		a.serverError(w, err)
 	}
 
 	err = ts.Execute(w, nil)
+	if err != nil {
+		a.serverError(w, err)
+	}
 
 }
 
