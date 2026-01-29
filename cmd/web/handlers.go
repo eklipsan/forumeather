@@ -1,22 +1,20 @@
 package main
 
 import (
-	"fmt"
 	"html/template"
 	"net/http"
 	"path/filepath"
 )
 
 
-func Home(w http.ResponseWriter, r *http.Request) {
+func (a Application) Home(w http.ResponseWriter, r *http.Request) {
 	files := []string{
 		"./ui/html/home.page.tmpl",
 		"./ui/html/base.layout.tmpl",
 	}
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
-		fmt.Println(err)
-		return
+		a.ErrorLog.Println(err)
 	}
 
 	err = ts.Execute(w, nil)

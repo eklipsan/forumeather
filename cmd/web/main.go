@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/eklipsan/forumeather/pkg/meteoblue"
@@ -9,19 +8,20 @@ import (
 
 
 func main() {
+	app := NewApplication()
 	makeevka := meteoblue.NewLocation(48.0478,37.9258, "Makeevka")
 
 	result, err := makeevka.GetCurrentForecast()
 	if err != nil {
-		fmt.Println(err)
+		app.ErrorLog.Println(err)
 		return
 	}
 
-	fmt.Println(result)
+	app.InfoLog.Println(result)
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/", Home)
+	mux.HandleFunc("/", app.Home)
 
 	fileServer := http.FileServer(NeuteredFileSystem{http.Dir("./ui/static/")})
 	mux.Handle("/static", http.NotFoundHandler())
