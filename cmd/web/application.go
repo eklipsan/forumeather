@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/eklipsan/forumeather/pkg/config"
+	"github.com/eklipsan/forumeather/pkg/storage"
 )
 
 
@@ -18,11 +19,18 @@ func getErrorLog() *log.Logger {
 	return ErrorLog
 }
 
+func getDatabaseConnection() storage.ForumDB {
+	forumDB := storage.ForumDB{}
+	forumDB.NewForumDB()
+	return forumDB
+}
+
 
 type Application struct {
 	InfoLog *log.Logger
 	ErrorLog *log.Logger
 	MeteoblueConfig *config.MeteoblueConfig
+	Database storage.ForumDB
 }
 
 func NewApplication() *Application {
@@ -36,5 +44,6 @@ func NewApplication() *Application {
 		InfoLog: infoLog,
 		ErrorLog: errorLog,
 		MeteoblueConfig: meteoblueConfig,
+		Database: getDatabaseConnection(),
 	}
 }

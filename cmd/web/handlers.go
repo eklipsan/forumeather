@@ -21,6 +21,9 @@ func (a Application) Home(w http.ResponseWriter, r *http.Request) {
 		a.serverError(w, err)
 	}
 
+	if err != nil {
+		a.serverError(w, err)
+	}
 	err = ts.Execute(w, nil)
 	if err != nil {
 		a.serverError(w, err)
