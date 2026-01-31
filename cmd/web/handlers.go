@@ -4,10 +4,29 @@ import (
 	"html/template"
 	"net/http"
 	"path/filepath"
+
+	"github.com/eklipsan/forumeather/pkg/meteoblue"
 )
 
 
+
+type ForumsCurrentWeather struct {
+	ForumsInfo []ForumInfo
+}
+
+type ForumInfo struct {
+	Name     string
+	Place string
+	Topics string
+	Temperature float64
+	Height int64
+	Windspeed float64
+}
+
+
 func (a Application) Home(w http.ResponseWriter, r *http.Request) {
+
+	var forums ForumsCurrentWeather
 	if r.URL.Path != "/" {
 		a.notFound(w)
 		return
@@ -21,10 +40,30 @@ func (a Application) Home(w http.ResponseWriter, r *http.Request) {
 		a.serverError(w, err)
 	}
 
+	dbForums, err := a.Database.GetAllForums()
 	if err != nil {
 		a.serverError(w, err)
 	}
-	err = ts.Execute(w, nil)
+
+	for _, row := range dbForums {
+
+		forumLocation := meteoblue.NewLocation(row.Latitude, row.Longitude, row.Name)
+		forumCurrentForecast, err := forumLocation.GetCurrentForecast()
+		if err != nil {
+			a.serverError(w, err)
+		}
+		forumInfo := ForumInfo{
+			Name: row.Name,
+			Place: row.Place,
+			Topics: row.Topics,
+			Temperature: forumCurrentForecast.DataCurrent.Temperature,
+			Height: forumCurrentForecast.Metadata.Height,
+			Windspeed: forumCurrentForecast.DataCurrent.Windspeed,
+		}
+		forums.ForumsInfo = append(forums.ForumsInfo, forumInfo)
+	}
+
+	err = ts.Execute(w, forums)
 	if err != nil {
 		a.serverError(w, err)
 	}

@@ -21,28 +21,27 @@
 
         <section class="comparison-container" id="weatherContainer">
             <!-- Города будут добавляться динамически -->
-            <div class="empty-state" id="emptyState">
-                Пока не добавлено ни одного города. Введите название города и нажмите "Добавить город".
-            </div>
+            {{range .ForumsInfo}}
             <div class="weather-card">
+                    <div class="forum-header">
+                        <div class="forum-name">{{.Name}}</div>
+                    </div>
                     <div class="city-header">
-                        <div class="city-name">Makeevka</div>
-                        <button class="remove-btn" data-city="Москва">×</button>
+                        <div class="city-name">{{.Place}}</div>
                     </div>
                     <div class="weather-info">
-                        <div class="temp">{{.DataCurrent.Temperature}}</div>
-                        <div class="condition">Облачно</div>
+                        <div class="temp">{{printf "%.2f °C" .Temperature}}</div>
                         <div class="weather-item">
                             <div class="weather-label">Ощущается как</div>
                             <div class="weather-value">13+</div>
                         </div>
                         <div class="weather-item">
-                            <div class="weather-label">Влажность</div>
-                            <div class="weather-value">65%</div>
+                            <div class="weather-label">Высота над уровнем моря, м</div>
+                            <div class="weather-value">{{.Height}}</div>
                         </div>
                         <div class="weather-item">
-                            <div class="weather-label">Ветер</div>
-                            <div class="weather-value">5 м/с</div>
+                            <div class="weather-label">Скорость ветра, м/с</div>
+                            <div class="weather-value">{{.Windspeed}}</div>
                         </div>
                         <div class="weather-item">
                             <div class="weather-label">Давление</div>
@@ -50,6 +49,11 @@
                         </div>
                     </div>
                 </div>
+                {{else}}
+                <div class="empty-state" id="emptyState">
+                    Пока не добавлено ни одного города. Введите название города и нажмите "Добавить город".
+                </div>
+                {{end}}
         </section>
     {{end}}
 
