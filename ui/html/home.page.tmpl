@@ -30,10 +30,10 @@
                         <div class="city-name">{{.Place}}</div>
                     </div>
                     <div class="weather-info">
-                        <div class="temp">{{printf "%.2f °C" .Temperature}}</div>
+                        <div class="condition">{{.WeatherFromPictocode}}</div>
                         <div class="weather-item">
                             <div class="weather-label">Ощущается как</div>
-                            <div class="weather-value">13+</div>
+                            <div class="weather-value">{{printf "%.2f °C" .Temperature}}</div>
                         </div>
                         <div class="weather-item">
                             <div class="weather-label">Высота над уровнем моря, м</div>
@@ -41,11 +41,11 @@
                         </div>
                         <div class="weather-item">
                             <div class="weather-label">Скорость ветра, м/с</div>
-                            <div class="weather-value">{{.Windspeed}}</div>
+                            <div class="weather-value">{{printf "%.2f" .Windspeed}}</div>
                         </div>
                         <div class="weather-item">
-                            <div class="weather-label">Давление</div>
-                            <div class="weather-value">760 мм рт. ст.</div>
+                            <div class="weather-label">Координаты локации</div>
+                            <div class="weather-value">{{printf "%.4f %.4f" .Latitude .Longitude}}</div>
                         </div>
                     </div>
                 </div>
