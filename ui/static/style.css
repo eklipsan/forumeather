@@ -64,10 +64,6 @@ h1 {
     transition: background-color 0.3s;
 }
 
-.btn:hover {
-    background-color: #2980b9;
-}
-
 .comparison-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -87,12 +83,7 @@ h1 {
     transform: translateY(-5px);
 }
 
-.forum-header {
-    display: flex;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #eee;
-}
-.city-header {
+.weather-header {
     display: flex;
     padding-bottom: 15px;
     border-bottom: 1px solid #eee;
@@ -110,20 +101,6 @@ h1 {
     font-size: 18px;
     color: #3498db;
     margin-top: 10px;
-}
-
-.remove-btn {
-    background-color: #e74c3c;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    cursor: pointer;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .weather-info {
@@ -172,18 +149,4 @@ footer {
     border-top: 1px solid #ddd;
     color: #7f8c8d;
     font-size: 14px;
-}
-
-@media (max-width: 768px) {
-    .controls {
-        flex-direction: column;
-    }
-
-    .city-input {
-        max-width: 100%;
-    }
-
-    .comparison-container {
-        grid-template-columns: 1fr;
-    }
 }
