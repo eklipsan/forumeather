@@ -11,11 +11,11 @@ import (
 type MeteobluePackage string
 
 const (
-	CurrentPackage MeteobluePackage = "current"
-	Basic15MinutePackage MeteobluePackage = "basic-15min"
-	Basic1HourPackage MeteobluePackage = "basic-1h"
-	Basic3HourPackage MeteobluePackage = "basic=3h"
-	BasicDayPackage MeteobluePackage = "basic-day"
+	currentPackage MeteobluePackage = "current"
+	basic15MinutePackage MeteobluePackage = "basic-15min"
+	basic1HourPackage MeteobluePackage = "basic-1h"
+	basic3HourPackage MeteobluePackage = "basic=3h"
+	basicDayPackage MeteobluePackage = "basic-day"
 )
 
 var WeatherPictoCode = map[int64]string{
@@ -64,7 +64,7 @@ func NewLocation(lat, lon float64, name string) *weatherLocation {
 
 
 func (w *weatherLocation) GetCurrentForecast() (CurrentForecast, error) {
-	currentUrl, err := w.createURL(CurrentPackage)
+	currentUrl, err := w.createURL(currentPackage)
 	if err != nil {
 		return CurrentForecast{}, err
 	}

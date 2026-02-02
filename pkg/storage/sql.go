@@ -18,7 +18,7 @@ type Forum struct {
 
 
 type ForumDB struct {
-	DB *sql.DB
+	db *sql.DB
 }
 
 func (fdb *ForumDB) NewForumDB() error {
@@ -29,13 +29,13 @@ func (fdb *ForumDB) NewForumDB() error {
 	if err := db.Ping(); err != nil {
 		return err
 	}
-	fdb.DB = db
+	fdb.db = db
 	return nil
 }
 
 
 func (fdb *ForumDB) Close() error {
-	err := fdb.DB.Close()
+	err := fdb.db.Close()
 	if err != nil {
 		return err
 	} else {
@@ -45,13 +45,14 @@ func (fdb *ForumDB) Close() error {
 
 func (fdb *ForumDB) GetAllForums() ([]Forum, error) {
 	var result []Forum
-	rows, err := fdb.DB.Query(`
+	rows, err := fdb.db.Query(`
 	SELECT
 		id, name, place, topics, latitude, longitude
 	FROM forums;`)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	for rows.Next() {
 		var forum Forum
 		err := rows.Scan(

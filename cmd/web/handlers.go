@@ -22,8 +22,6 @@ type ForumInfo struct {
 	Height int64
 	Windspeed float64
 	WeatherFromPictocode string
-	Latitude float64
-	Longitude float64
 }
 
 
@@ -63,8 +61,6 @@ func (a Application) Home(w http.ResponseWriter, r *http.Request) {
 			Height: forumCurrentForecast.Metadata.Height,
 			Windspeed: forumCurrentForecast.DataCurrent.Windspeed,
 			WeatherFromPictocode: meteoblue.WeatherPictoCode[forumCurrentForecast.DataCurrent.PictocodeDetailed],
-			Latitude: row.Latitude,
-			Longitude: row.Longitude,
 		}
 		forums.ForumsInfo = append(forums.ForumsInfo, forumInfo)
 	}
