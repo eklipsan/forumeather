@@ -2,6 +2,7 @@ package storage
 
 import (
 	"database/sql"
+	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -34,13 +35,41 @@ func (fdb *ForumDB) NewForumDB() error {
 }
 
 
-func (fdb *ForumDB) Close() error {
-	err := fdb.db.Close()
+func (fdb *ForumDB) SearchForums(query string) ([]Forum, error) {
+	var result []Forum
+	query = strings.TrimSpace(query)
+
+	searchPattern := "%" + query + "%"
+
+	rows, err := fdb.db.Query(`
+		SELECT id, name, place, topics, latitude, longitude
+		FROM forums
+		WHERE name like ?
+		OR place like ?
+		OR topics like ?;`, searchPattern, searchPattern, searchPattern,
+	)
 	if err != nil {
-		return err
-	} else {
-		return nil
+		return nil, err
 	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var forum Forum
+		err := rows.Scan(
+			&forum.ID,
+			&forum.Name,
+			&forum.Place,
+			&forum.Topics,
+			&forum.Latitude,
+			&forum.Longitude,
+		)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, forum)
+	}
+	return result, nil
+
 }
 
 func (fdb *ForumDB) GetAllForums() ([]Forum, error) {

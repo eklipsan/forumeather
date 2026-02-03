@@ -6,12 +6,14 @@ import (
 	"path/filepath"
 
 	"github.com/eklipsan/forumeather/pkg/meteoblue"
+	"github.com/eklipsan/forumeather/pkg/storage"
 )
 
 
 
 type ForumsCurrentWeather struct {
 	ForumsInfo []ForumInfo
+	SearchQuery string
 }
 
 type ForumInfo struct {
@@ -24,14 +26,21 @@ type ForumInfo struct {
 	WeatherFromPictocode string
 }
 
+type SearchFilter struct {
+	Query string
+}
+
 
 func (a Application) Home(w http.ResponseWriter, r *http.Request) {
-
-	var forums ForumsCurrentWeather
+	var (
+		dbForums []storage.Forum
+		forums ForumsCurrentWeather
+	)
 	if r.URL.Path != "/" {
 		a.notFound(w)
 		return
 	}
+
 	files := []string{
 		"./ui/html/home.page.tmpl",
 		"./ui/html/base.layout.tmpl",
@@ -41,10 +50,22 @@ func (a Application) Home(w http.ResponseWriter, r *http.Request) {
 		a.serverError(w, err)
 	}
 
-	dbForums, err := a.Database.GetAllForums()
-	if err != nil {
-		a.serverError(w, err)
+
+	searchQuery := r.URL.Query().Get("search")
+
+	if searchQuery == "" {
+		dbForums, err = a.Database.GetAllForums()
+		if err != nil {
+			a.serverError(w, err)
+		}
+	} else {
+		dbForums, err = a.Database.SearchForums(searchQuery)
+		if err != nil {
+			a.serverError(w, err)
+		}
+
 	}
+
 
 	for _, row := range dbForums {
 

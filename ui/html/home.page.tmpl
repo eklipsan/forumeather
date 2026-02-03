@@ -4,19 +4,21 @@
 </head>
 <body>
     {{define "header"}}
-        <h1>Сравнение погоды в городах</h1>
-        <p class="description">Добавьте города для сравнения текущих погодных условий. Данные будут обновляться автоматически.</p>
+        <h1>Forumeather</h1>
+        <p class="description">Прогноз погоды в местах проведения российских форумов.</p>
     {{end}}
 
     {{define "main"}}
         <section class="controls">
-            <input type="text" class="city-input" id="cityInput" placeholder="Введите название города...">
-            <button class="btn" id="addCityBtn">Добавить город</button>
-            <button class="btn" id="clearAllBtn">Очистить все</button>
+            <form method="GET" action="/">
+            <input type="text" value="{{.SearchQuery}}" name="search" class="city-input" id="cityInput" placeholder="Поиск по названию форума, месту или тематике...">
+            <button type="submit" class="btn">Поиск</button>
+            {{if .SearchQuery}}
+            <a href="/" class="btn">Очистить</a>
+            {{end}}
         </section>
 
         <section class="comparison-container" id="weatherContainer">
-            <!-- Города будут добавляться динамически -->
             {{range .ForumsInfo}}
             <div class="weather-card">
                     <div class="weather-header">
@@ -51,7 +53,7 @@
                 </div>
                 {{else}}
                 <div class="empty-state" id="emptyState">
-                    Пока не добавлено ни одного города. Введите название города и нажмите "Добавить город".
+                    По запросу "{{.SearchQuery}}" ничего не найдено.
                 </div>
                 {{end}}
         </section>
