@@ -57,6 +57,16 @@
                 </div>
                 {{end}}
         </section>
+    <div class="pagination">
+    {{range .TotalPages}}
+        <a href="/?search={{$.SearchQuery}}&page={{.}}"
+        class="btn {{if eq . $.CurrentPage}}active{{end}}">
+            {{.}}
+        </a>
     {{end}}
+    </form>
+    {{end}}
+
+</div>
 </body>
 </html>

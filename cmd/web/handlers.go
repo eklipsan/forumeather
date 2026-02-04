@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"net/http"
 	"path/filepath"
+	"strconv"
 
 	"github.com/eklipsan/forumeather/pkg/meteoblue"
 	"github.com/eklipsan/forumeather/pkg/storage"
@@ -14,6 +15,8 @@ import (
 type ForumsCurrentWeather struct {
 	ForumsInfo []ForumInfo
 	SearchQuery string
+	TotalPages []int
+	CurrentPage int
 }
 
 type ForumInfo struct {
@@ -35,6 +38,9 @@ func (a Application) Home(w http.ResponseWriter, r *http.Request) {
 	var (
 		dbForums []storage.Forum
 		forums ForumsCurrentWeather
+
+		SliceTotalPage []int
+		pageSize = 6
 	)
 	if r.URL.Path != "/" {
 		a.notFound(w)
@@ -52,6 +58,10 @@ func (a Application) Home(w http.ResponseWriter, r *http.Request) {
 
 
 	searchQuery := r.URL.Query().Get("search")
+	currentPage := r.URL.Query().Get("page")
+	if currentPage == "" { currentPage = "1"}
+
+	currentPageInt, _ := strconv.Atoi(currentPage)
 
 	if searchQuery == "" {
 		dbForums, err = a.Database.GetAllForums()
@@ -67,8 +77,18 @@ func (a Application) Home(w http.ResponseWriter, r *http.Request) {
 	}
 
 
-	for _, row := range dbForums {
+	totalItems := len(dbForums)
+    totalPages := (totalItems + pageSize - 1) / pageSize
 
+	start := (currentPageInt - 1) * pageSize
+    end := start + pageSize
+
+	if end > totalItems { end = totalItems }
+
+	if start < totalItems {
+        dbForums =  dbForums[start:end]
+    }
+	for _, row := range dbForums {
 		forumLocation := meteoblue.NewLocation(row.Latitude, row.Longitude, row.Name)
 		forumCurrentForecast, err := forumLocation.GetCurrentForecast()
 		if err != nil {
@@ -85,7 +105,15 @@ func (a Application) Home(w http.ResponseWriter, r *http.Request) {
 		}
 		forums.ForumsInfo = append(forums.ForumsInfo, forumInfo)
 	}
+
+
 	forums.SearchQuery = searchQuery
+
+	for i := 1; i <= totalPages; i++ {
+		SliceTotalPage = append(SliceTotalPage, i)
+	}
+	forums.TotalPages = SliceTotalPage
+	forums.CurrentPage = currentPageInt
 
 	err = ts.Execute(w, forums)
 	if err != nil {
