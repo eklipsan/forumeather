@@ -85,6 +85,7 @@ func (a Application) Home(w http.ResponseWriter, r *http.Request) {
 		}
 		forums.ForumsInfo = append(forums.ForumsInfo, forumInfo)
 	}
+	forums.SearchQuery = searchQuery
 
 	err = ts.Execute(w, forums)
 	if err != nil {
