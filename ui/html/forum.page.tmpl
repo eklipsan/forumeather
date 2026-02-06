@@ -1,0 +1,78 @@
+{{template "base" .}}
+<head>
+    {{define "title"}}Прогноз: {{.ForumInfo.Name}}{{end}}
+</head>
+<body>
+    {{define "header"}}
+        <h1>{{.ForumInfo.Name}}</h1>
+        <p class="description">Детальный прогноз погоды на ближайшие 10 дней.</p>
+        <div style="margin-top: 15px;">
+            <a href="/" class="btn" style="background-color: #95a5a6;">← Назад к списку</a>
+        </div>
+    {{end}}
+
+    {{define "main"}}
+    <section class="forum-summary">
+        <div class="weather-card summary-card">
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <span class="weather-label">Место:</span>
+                    <span class="weather-value">{{.ForumInfo.Place}}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="weather-label">Тематика:</span>
+                    <span class="weather-value">{{.ForumInfo.Topics}}</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <h2 style="margin: 30px 0 20px; color: #2c3e50; text-align: center;">Прогноз на 10 дней</h2>
+
+<section class="forecast-grid">
+        {{range .ForumTrend}}
+        <div class="weather-card forecast-card">
+            <div class="forecast-date">{{ .Time }}</div>
+
+            <div class="condition">{{ .WeatherFromPictocode }}</div>
+
+            <div class="weather-info">
+                <div class="weather-item">
+                    <div class="weather-label">Макс.</div>
+                    <div class="weather-value" style="color: #ff2400">
+                        {{printf "%.2f" .TemperatureMax}}
+                    </div>
+                </div>
+                <div class="weather-item">
+                    <div class="weather-label">Мин.</div>
+                    <div class="weather-value" style="color: #3498db">
+                        {{ printf "%.2f" .TemperatureMin }}
+                    </div>
+                </div>
+
+                <div class="weather-item" style="grid-column: span 2; border-top: 1px solid #eee; padding-top: 10px; text-align: left;">
+                    <div class="weather-label">Ветер (средний):</div>
+                    <div class="weather-value" style="font-size: 14px;">
+                        {{ printf "%.2f" .WindSpeedMean }}
+                    </div>
+                </div>
+
+                <div class="weather-item" style="grid-column: span 2;">
+                    <div class="weather-label">Вероятность осадков:</div>
+                    <div class="weather-value" style="font-size: 14px; color: #2980b9;">
+                        {{ .PrecipitationProbability }}
+                    </div>
+                </div>
+
+                <div class="weather-item" style="grid-column: span 2;">
+                    <div class="weather-label">Предсказуемость:</div>
+                    <div class="progress-bar-bg" style="background: #eee; height: 8px; border-radius: 4px; margin-top: 5px;">
+                        <div class="progress-bar-fill" style="background: #27ae60; height: 100%; border-radius: 4px; width: {{ .Predictability }}%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{end}}
+    </section>
+    {{end}}
+</body>

@@ -12,10 +12,7 @@ type MeteobluePackage string
 
 const (
 	currentPackage MeteobluePackage = "current"
-	basic15MinutePackage MeteobluePackage = "basic-15min"
-	basic1HourPackage MeteobluePackage = "basic-1h"
-	basic3HourPackage MeteobluePackage = "basic=3h"
-	basicDayPackage MeteobluePackage = "basic-day"
+	trendDayPackage MeteobluePackage = "trend-day"
 )
 
 var WeatherPictoCode = map[int64]string{
@@ -87,6 +84,31 @@ func (w *weatherLocation) GetCurrentForecast() (CurrentForecast, error) {
 
 	return structResult, nil
 
+}
+
+func (w *weatherLocation) GetTrendDayForecast() (TrendDayForecast, error) {
+	trendDayUrl, err := w.createURL(trendDayPackage)
+	if err != nil {
+		return TrendDayForecast{}, err
+	}
+
+	req, err := http.Get(trendDayUrl)
+	if err != nil || req.StatusCode != http.StatusOK {
+		return TrendDayForecast{}, err
+	}
+	defer req.Body.Close()
+
+	bytesResult, err := io.ReadAll(req.Body)
+	if err != nil {
+		return TrendDayForecast{}, err
+	}
+
+	structResult, err := UnmarshalTrendDayForecast(bytesResult)
+	if err != nil {
+		return TrendDayForecast{}, err
+	}
+
+	return structResult, nil
 }
 
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"runtime/debug"
+	"time"
 )
 
 // Помощник serverError записывает сообщение об ошибке в errorLog и
@@ -26,4 +27,25 @@ func (app *Application) clientError(w http.ResponseWriter, status int) {
 // удобная оболочка вокруг clientError, которая отправляет пользователю ответ "404 Страница не найдена".
 func (app *Application) notFound(w http.ResponseWriter) {
 	app.clientError(w, http.StatusNotFound)
+}
+
+
+func GetTimeLabel(t time.Time) string {
+	date := t.Format("02.01.2006")
+	weekday := getRussianWeekday(t)
+
+	return fmt.Sprintf("%s (%s)", date, weekday)
+}
+
+func getRussianWeekday(t time.Time) string {
+    weekdays := map[time.Weekday]string{
+        time.Sunday:    "воскресенье",
+        time.Monday:    "понедельник",
+        time.Tuesday:   "вторник",
+        time.Wednesday: "среда",
+        time.Thursday:  "четверг",
+        time.Friday:    "пятница",
+        time.Saturday:  "суббота",
+    }
+    return weekdays[t.Weekday()]
 }

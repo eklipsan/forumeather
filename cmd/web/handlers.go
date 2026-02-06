@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/eklipsan/forumeather/pkg/meteoblue"
 	"github.com/eklipsan/forumeather/pkg/storage"
@@ -13,13 +14,14 @@ import (
 
 
 type ForumsCurrentWeather struct {
-	ForumsInfo []ForumInfo
+	ForumsInfo []ForumInfoCurrent
 	SearchQuery string
 	TotalPages []int
 	CurrentPage int
 }
 
-type ForumInfo struct {
+type ForumInfoCurrent struct {
+	ID int64
 	Name     string
 	Place string
 	Topics string
@@ -94,7 +96,8 @@ func (a Application) Home(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			a.serverError(w, err)
 		}
-		forumInfo := ForumInfo{
+		forumInfo := ForumInfoCurrent{
+			ID: row.ID,
 			Name: row.Name,
 			Place: row.Place,
 			Topics: row.Topics,
@@ -120,6 +123,90 @@ func (a Application) Home(w http.ResponseWriter, r *http.Request) {
 		a.serverError(w, err)
 	}
 
+}
+
+type ForumTrendWeather struct {
+	ForumInfo ForumInfoCurrent
+	ForumTrend []ForumInfoTrend
+}
+
+type ForumInfoTrend struct {
+	Time string
+	WeatherFromPictocode string
+	TemperatureMax float64
+	TemperatureMin float64
+	WindSpeedMean float64
+	PrecipitationProbability int64
+	Predictability int64
+}
+
+
+
+func (a Application) ForumPage(w http.ResponseWriter, r *http.Request) {
+	var ForumDaysTrend []ForumInfoTrend
+	files := []string{
+		"./ui/html/forum.page.tmpl",
+		"./ui/html/base.layout.tmpl",
+	}
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		a.serverError(w, err)
+	}
+
+	forum_id_str := r.URL.Query().Get("id")
+	forum_id_int, _ := strconv.Atoi(forum_id_str)
+	a.InfoLog.Println("id:", forum_id_int)
+
+
+	forumDB, err := a.Database.GetForum(forum_id_int)
+	if err != nil {
+		a.serverError(w, err)
+	}
+	a.InfoLog.Println(forumDB)
+
+
+	forumLocation := meteoblue.NewLocation(forumDB.Latitude, forumDB.Longitude, forumDB.Name)
+	trendDayForecast, err := forumLocation.GetTrendDayForecast()
+	if err != nil {
+		a.serverError(w, err)
+	}
+
+	ForumInfoCurrent := ForumInfoCurrent{
+		Name: forumDB.Name,
+		Place: forumDB.Place,
+		Topics: forumDB.Topics,
+		Temperature: 0.0,
+		Height: 0,
+	}
+
+	for dayIndex := 0; dayIndex < len(trendDayForecast.TrendDay.Time) - 4; dayIndex ++ {
+		var DayTrend ForumInfoTrend
+		// "2006-01-02 15:04:05" "YYYY-MM-DD hh:mm",
+		ParsedTime, err := time.Parse("2006-01-02 15:04", trendDayForecast.TrendDay.Time[dayIndex])
+		if err != nil {
+			a.ErrorLog.Println(err)
+		}
+
+		DayTrend.Time = GetTimeLabel(ParsedTime)
+		DayTrend.WeatherFromPictocode = meteoblue.WeatherPictoCode[trendDayForecast.TrendDay.Pictocode[dayIndex]]
+		DayTrend.TemperatureMax = trendDayForecast.TrendDay.TemperatureMax[dayIndex]
+		DayTrend.TemperatureMin = trendDayForecast.TrendDay.TemperatureMin[dayIndex]
+		DayTrend.WindSpeedMean = trendDayForecast.TrendDay.WindspeedMean[dayIndex]
+		DayTrend.PrecipitationProbability = trendDayForecast.TrendDay.PrecipitationProbability[dayIndex]
+		DayTrend.Predictability = trendDayForecast.TrendDay.Predictability[dayIndex]
+
+		ForumDaysTrend = append(ForumDaysTrend, DayTrend)
+	}
+
+	ForumPage := ForumTrendWeather{
+		ForumInfo: ForumInfoCurrent,
+		ForumTrend: ForumDaysTrend,
+	}
+
+	err = ts.Execute(w, ForumPage)
+	if err != nil {
+		a.serverError(w, err)
+	}
 }
 
 type NeuteredFileSystem struct {

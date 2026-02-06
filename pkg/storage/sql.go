@@ -99,3 +99,26 @@ func (fdb *ForumDB) GetAllForums() ([]Forum, error) {
 	}
 	return result, nil
 }
+
+func (fdb *ForumDB) GetForum(id int) (Forum, error) {
+	var forum Forum
+	rows := fdb.db.QueryRow(`
+	SELECT
+		id, name, place, topics, latitude, longitude
+	FROM forums
+	WHERE id = ?;`, id)
+
+	err := rows.Scan(
+		&forum.ID,
+		&forum.Name,
+		&forum.Place,
+		&forum.Topics,
+		&forum.Latitude,
+		&forum.Longitude,
+	)
+	if err != nil {
+		return forum, err
+	}
+
+	return forum, nil
+}
