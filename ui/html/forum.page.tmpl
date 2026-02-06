@@ -38,34 +38,65 @@
 
             <div class="weather-info">
                 <div class="weather-item">
-                    <div class="weather-label">Макс.</div>
-                    <div class="weather-value" style="color: #ff2400">
-                        {{printf "%.2f" .TemperatureMax}}
+                    <div class="weather-label">Днём</div>
+                    <div class="weather-value">
+                            {{if gt .TemperatureMax 0.0}}
+                            <div class="weather-value" style="color: #ff2400">{{printf "%.2f °C" .TemperatureMax}}</div>
+                            {{else}}
+                            <div class="weather-value" style="color: blue">{{printf "%.2f °C" .TemperatureMax}}</div>
+                            {{end}}
                     </div>
                 </div>
                 <div class="weather-item">
-                    <div class="weather-label">Мин.</div>
-                    <div class="weather-value" style="color: #3498db">
-                        {{ printf "%.2f" .TemperatureMin }}
+                    <div class="weather-label">Ночью</div>
+                    <div class="weather-value">
+                            {{if gt .TemperatureMin 0.0}}
+                            <div class="weather-value" style="color: #ff2400">{{printf "%.2f °C" .TemperatureMin}}</div>
+                            {{else}}
+                            <div class="weather-value" style="color: blue">{{printf "%.2f °C" .TemperatureMin}}</div>
+                            {{end}}
                     </div>
                 </div>
 
-                <div class="weather-item" style="grid-column: span 2; border-top: 1px solid #eee; padding-top: 10px; text-align: left;">
-                    <div class="weather-label">Ветер (средний):</div>
+                <div class="weather-item" style="grid-column: span 2; border-top: 1px solid #eee; padding-top: 10px; text-align: center;">
+                    <div class="weather-label">Скорость ветра:</div>
                     <div class="weather-value" style="font-size: 14px;">
-                        {{ printf "%.2f" .WindSpeedMean }}
+                        {{ printf "%.2f м/с" .WindSpeedMean }}
                     </div>
                 </div>
 
                 <div class="weather-item" style="grid-column: span 2;">
                     <div class="weather-label">Вероятность осадков:</div>
-                    <div class="weather-value" style="font-size: 14px; color: #2980b9;">
-                        {{ .PrecipitationProbability }}
+                    <div class="weather-value" style="font-size: 14px;">
+                        {{ printf "%d %%" .PrecipitationProbability }}
+                    </div>
+                </div>
+
+
+                <div class="weather-item" style="grid-column: span 2;">
+                    <div class="weather-label">Процент облачности:</div>
+                    <div class="weather-value" style="font-size: 14px;">
+                        {{ printf "%d %%" .CloudCoverMean }}
                     </div>
                 </div>
 
                 <div class="weather-item" style="grid-column: span 2;">
-                    <div class="weather-label">Предсказуемость:</div>
+                    <div class="weather-label">Относительная влажность:</div>
+                    <div class="weather-value" style="font-size: 14px;">
+                        {{ printf "%d %%" .RelativeHumidity }}
+                    </div>
+                </div>
+
+
+                <div class="weather-item" style="grid-column: span 2;">
+                    <div class="weather-label">Атмосферное давление:</div>
+                    <div class="weather-value" style="font-size: 14px;">
+                        {{ printf "%d мм" .SeaLevelPressure }}
+                    </div>
+                </div>
+
+                <div class="weather-item" style="grid-column: span 2;">
+                    <div class="weather-label">Предсказуемость (%):</div>
                     <div class="progress-bar-bg" style="background: #eee; height: 8px; border-radius: 4px; margin-top: 5px;">
                         <div class="progress-bar-fill" style="background: #27ae60; height: 100%; border-radius: 4px; width: {{ .Predictability }}%;"></div>
                     </div>

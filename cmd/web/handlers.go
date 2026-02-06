@@ -138,6 +138,10 @@ type ForumInfoTrend struct {
 	WindSpeedMean float64
 	PrecipitationProbability int64
 	Predictability int64
+
+	CloudCoverMean int64
+	RelativeHumidity int64
+	SeaLevelPressure int64
 }
 
 
@@ -195,6 +199,9 @@ func (a Application) ForumPage(w http.ResponseWriter, r *http.Request) {
 		DayTrend.PrecipitationProbability = trendDayForecast.TrendDay.PrecipitationProbability[dayIndex]
 		DayTrend.Predictability = trendDayForecast.TrendDay.Predictability[dayIndex]
 
+		DayTrend.CloudCoverMean = trendDayForecast.TrendDay.TotalcloudcoverMean[dayIndex]
+		DayTrend.RelativeHumidity = trendDayForecast.TrendDay.RelativehumidityMean[dayIndex]
+		DayTrend.SeaLevelPressure = trendDayForecast.TrendDay.SealevelpressureMean[dayIndex]
 		ForumDaysTrend = append(ForumDaysTrend, DayTrend)
 	}
 
