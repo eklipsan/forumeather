@@ -19,9 +19,9 @@ func getErrorLog() *log.Logger {
 	return ErrorLog
 }
 
-func getDatabaseConnection() storage.ForumDB {
+func getDatabaseConnection(pathDB string) storage.ForumDB {
 	forumDB := storage.ForumDB{}
-	forumDB.NewForumDB()
+	forumDB.NewForumDB(pathDB)
 	return forumDB
 }
 
@@ -29,21 +29,21 @@ func getDatabaseConnection() storage.ForumDB {
 type Application struct {
 	InfoLog *log.Logger
 	ErrorLog *log.Logger
-	MeteoblueConfig *config.MeteoblueConfig
+	Config *config.AppConfig
 	Database storage.ForumDB
 }
 
 func NewApplication() *Application {
 	errorLog := getErrorLog()
 	infoLog := getInfoLog()
-	meteoblueConfig, err := config.LoadMeteoblueConfig()
+	AppConfig, err := config.LoadAppConfig()
 	if err != nil {
 		errorLog.Println(err)
 	}
 	return &Application{
 		InfoLog: infoLog,
 		ErrorLog: errorLog,
-		MeteoblueConfig: meteoblueConfig,
-		Database: getDatabaseConnection(),
+		Config: AppConfig,
+		Database: getDatabaseConnection(AppConfig.DatabaseConfig.PathDB),
 	}
 }

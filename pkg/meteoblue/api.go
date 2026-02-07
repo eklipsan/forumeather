@@ -114,19 +114,19 @@ func (w *weatherLocation) GetTrendDayForecast() (TrendDayForecast, error) {
 
 func (w *weatherLocation) createURL(PackageName MeteobluePackage) (string, error) {
 	var meteoblueURL string
-	configURL, err := config.LoadMeteoblueConfig()
-
+	config, err := config.LoadAppConfig()
+	meteoblueConfig := config.MeteoblueConfig
 	if err != nil {
 		return "", err
 	}
-	meteoblueURL = configURL.URL
+	meteoblueURL = meteoblueConfig.URL
 	meteoblueURL += string(PackageName)
-	meteoblueURL += "?apikey=" + configURL.APIKey
+	meteoblueURL += "?apikey=" + meteoblueConfig.APIKey
 	strLat := fmt.Sprintf("%.4f", w.Lat)
 	strLon := fmt.Sprintf("%.4f", w.Lon)
 	meteoblueURL += "&lat=" + strLat + "&lon=" + strLon
-	meteoblueURL += "&tz=" + configURL.TZ
-	meteoblueURL += "&format=" + configURL.Format
+	meteoblueURL += "&tz=" + meteoblueConfig.TZ
+	meteoblueURL += "&format=" + meteoblueConfig.Format
 
 	w.CurrentURL = meteoblueURL
 

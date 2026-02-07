@@ -10,7 +10,7 @@ func main() {
 	app := NewApplication()
 
 	srv := http.Server{
-		Addr: ":8080",
+		Addr: app.Config.NetworkConfig.Port,
 		Handler: app.routes(),
 	}
 

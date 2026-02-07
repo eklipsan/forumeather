@@ -22,8 +22,8 @@ type ForumDB struct {
 	db *sql.DB
 }
 
-func (fdb *ForumDB) NewForumDB() error {
-	db, err := sql.Open("sqlite3", "forumeather.db")
+func (fdb *ForumDB) NewForumDB(PathDB string) error {
+	db, err := sql.Open("sqlite3", PathDB)
 	if err != nil {
 		return err
 	}
