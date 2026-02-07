@@ -46,6 +46,7 @@ func (a Application) Home(w http.ResponseWriter, r *http.Request) {
 	)
 	if r.URL.Path != "/" {
 		a.notFound(w)
+		a.ErrorLog.Println("Страница не найдена", r.URL.Path, r.URL.Path != "/")
 		return
 	}
 
@@ -56,25 +57,37 @@ func (a Application) Home(w http.ResponseWriter, r *http.Request) {
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
 		a.serverError(w, err)
+		a.ErrorLog.Printf("Не удалось прочитать шаблон %s\n", err)
 	}
+	a.InfoLog.Printf("Парсинг файлов для главной страницы %s\n", files)
 
 
 	searchQuery := r.URL.Query().Get("search")
 	currentPage := r.URL.Query().Get("page")
+	a.InfoLog.Printf("Получение параметров страницы searchQuery=%s, currentPage=%s\n", currentPage, searchQuery)
+
 	if currentPage == "" { currentPage = "1"}
 
-	currentPageInt, _ := strconv.Atoi(currentPage)
+	currentPageInt, err := strconv.Atoi(currentPage)
+	if err != nil {
+		a.serverError(w, err)
+		a.ErrorLog.Printf("Ошибка преобразования текущей страницы %s\n", err)
+	}
 
 	if searchQuery == "" {
 		dbForums, err = a.Database.GetAllForums()
 		if err != nil {
 			a.serverError(w, err)
+			a.ErrorLog.Printf("Ошибка получения списка форумов %s\n", err)
 		}
+		a.InfoLog.Println("Получение списка всех форумов")
 	} else {
 		dbForums, err = a.Database.SearchForums(searchQuery)
 		if err != nil {
 			a.serverError(w, err)
+			a.ErrorLog.Printf("Ошибка поиска форумов %s\n", err)
 		}
+		a.InfoLog.Println("Поиск форума по строке", searchQuery, "количество найденных форумов:", len(dbForums))
 
 	}
 
@@ -95,6 +108,7 @@ func (a Application) Home(w http.ResponseWriter, r *http.Request) {
 		forumCurrentForecast, err := forumLocation.GetCurrentForecast()
 		if err != nil {
 			a.serverError(w, err)
+			a.ErrorLog.Printf("Ошибка получения прогноза погоды %s\n", err)
 		}
 		forumInfo := ForumInfoCurrent{
 			ID: row.ID,
@@ -121,7 +135,9 @@ func (a Application) Home(w http.ResponseWriter, r *http.Request) {
 	err = ts.Execute(w, forums)
 	if err != nil {
 		a.serverError(w, err)
+		a.ErrorLog.Printf("Ошибка выполнения шаблона %s\n", err)
 	}
+	a.InfoLog.Printf("Отображение главной страницы, страница %s\n", currentPage)
 
 }
 
@@ -155,24 +171,30 @@ func (a Application) ForumPage(w http.ResponseWriter, r *http.Request) {
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
 		a.serverError(w, err)
+		a.ErrorLog.Printf("Не удалось прочитать шаблон %s\n", err)
 	}
 
 	forum_id_str := r.URL.Query().Get("id")
-	forum_id_int, _ := strconv.Atoi(forum_id_str)
-	a.InfoLog.Println("id:", forum_id_int)
+	forum_id_int, err := strconv.Atoi(forum_id_str)
+	if err != nil {
+		a.serverError(w, err)
+	}
+	a.InfoLog.Printf("Получение id %d форума для прогноза погоды\n", forum_id_int)
 
 
 	forumDB, err := a.Database.GetForum(forum_id_int)
 	if err != nil {
 		a.serverError(w, err)
+		a.ErrorLog.Printf("Ошибка получения форума %s\n", err)
 	}
-	a.InfoLog.Println(forumDB)
+	a.InfoLog.Println("Запрос одного форума:", forumDB)
 
 
 	forumLocation := meteoblue.NewLocation(forumDB.Latitude, forumDB.Longitude, forumDB.Name)
 	trendDayForecast, err := forumLocation.GetTrendDayForecast()
 	if err != nil {
 		a.serverError(w, err)
+		a.ErrorLog.Printf("Ошибка получения прогноза погоды %s\n", err)
 	}
 
 	ForumInfoCurrent := ForumInfoCurrent{
@@ -188,6 +210,7 @@ func (a Application) ForumPage(w http.ResponseWriter, r *http.Request) {
 		// "2006-01-02 15:04:05" "YYYY-MM-DD hh:mm",
 		ParsedTime, err := time.Parse("2006-01-02 15:04", trendDayForecast.TrendDay.Time[dayIndex])
 		if err != nil {
+			a.serverError(w, err)
 			a.ErrorLog.Println(err)
 		}
 
@@ -213,7 +236,9 @@ func (a Application) ForumPage(w http.ResponseWriter, r *http.Request) {
 	err = ts.Execute(w, ForumPage)
 	if err != nil {
 		a.serverError(w, err)
+		a.ErrorLog.Printf("Ошибка выполнения шаблона %s\n", err)
 	}
+	a.InfoLog.Printf("Отображение страницы форума %s\n", forumDB.Name)
 }
 
 type NeuteredFileSystem struct {

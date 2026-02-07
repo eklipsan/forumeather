@@ -25,7 +25,6 @@ func getDatabaseConnection(pathDB string) storage.ForumDB {
 	return forumDB
 }
 
-
 type Application struct {
 	InfoLog *log.Logger
 	ErrorLog *log.Logger
@@ -40,6 +39,7 @@ func NewApplication() *Application {
 	if err != nil {
 		errorLog.Println(err)
 	}
+	infoLog.Println("Создание конфига приложения")
 	return &Application{
 		InfoLog: infoLog,
 		ErrorLog: errorLog,

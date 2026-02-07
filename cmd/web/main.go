@@ -2,7 +2,6 @@ package main
 
 import (
 	"net/http"
-	// "github.com/eklipsan/forumeather/pkg/meteoblue"
 )
 
 
@@ -13,10 +12,12 @@ func main() {
 		Addr: app.Config.NetworkConfig.Port,
 		Handler: app.routes(),
 	}
+	app.InfoLog.Printf("Создание сервера на порту %s", app.Config.NetworkConfig.Port)
 
 
 	err := srv.ListenAndServe()
 	if err != nil {
 		app.ErrorLog.Println(err)
 	}
+	app.InfoLog.Println("Запуск сервера")
 }
