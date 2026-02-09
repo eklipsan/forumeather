@@ -123,3 +123,24 @@ func (fdb *ForumDB) GetForum(id int) (Forum, error) {
 
 	return forum, nil
 }
+
+func (fdb *ForumDB) AddForum(forum Forum) (error) {
+	_, err := fdb.db.Exec(`
+	INSERT INTO forums (name, place, topics, latitude, longitude)
+	VALUES (?, ?, ?, ?, ?)`,
+	forum.Name, forum.Place, forum.Topics, forum.Latitude, forum.Longitude)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (fdb *ForumDB) DeleteForum(ForumID int) (error) {
+	_, err := fdb.db.Exec(`
+	DELETE FROM forums
+	WHERE id = ?;`, ForumID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
