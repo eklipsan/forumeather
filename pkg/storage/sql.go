@@ -22,16 +22,17 @@ type ForumDB struct {
 	db *sql.DB
 }
 
-func (fdb *ForumDB) NewForumDB(PathDB string) error {
+func NewForumDB(PathDB string) (ForumDB, error) {
+	var fdb ForumDB
 	db, err := sql.Open("sqlite3", PathDB)
 	if err != nil {
-		return err
+		return fdb, err
 	}
 	if err := db.Ping(); err != nil {
-		return err
+		return fdb, err
 	}
 	fdb.db = db
-	return nil
+	return fdb, nil
 }
 
 

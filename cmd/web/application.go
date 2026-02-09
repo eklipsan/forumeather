@@ -20,8 +20,10 @@ func getErrorLog() *log.Logger {
 }
 
 func getDatabaseConnection(pathDB string) storage.ForumDB {
-	forumDB := storage.ForumDB{}
-	forumDB.NewForumDB(pathDB)
+	forumDB, err := storage.NewForumDB(pathDB)
+	if err != nil {
+		panic(err)
+	}
 	return forumDB
 }
 
