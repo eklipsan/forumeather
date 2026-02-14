@@ -1,0 +1,14 @@
+FROM golang:alpine AS build
+RUN apk --no-cache add gcc g++
+WORKDIR /go/src/app
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN GOOS=linux CGO_ENABLED=1 go build -o ./bin/cli-app ./cmd/cli/
+FROM alpine:latest
+WORKDIR /usr/bin
+RUN echo "while true; do sleep 100; done;" > /usr/bin/entrypoint.sh
+RUN chmod +x /usr/bin/entrypoint.sh
+COPY --from=build /go/src/app/bin/cli-app .
+COPY ./data ./data
+ENTRYPOINT [ "sh", "/usr/bin/entrypoint.sh" ]

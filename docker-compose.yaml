@@ -1,0 +1,16 @@
+services:
+  web-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    ports:
+      - 8080:8080
+    volumes:
+      - ./data/:/usr/bin/data
+
+  cli-tool:
+    build:
+      context: .
+      dockerfile: Dockerfile.cli
+    volumes:
+      - ./data/:/usr/bin/data

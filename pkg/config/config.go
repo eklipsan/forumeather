@@ -29,7 +29,7 @@ type meteoblueConfig struct {
 }
 
 func LoadAppConfig() (*AppConfig, error) {
-	if err := godotenv.Load(); err != nil {
+	if err := godotenv.Load("data/.env"); err != nil {
 		return nil, err
 	} else {
 		return &AppConfig{
