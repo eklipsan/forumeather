@@ -30,22 +30,19 @@ func getDatabaseConnection(pathDB string) storage.ForumDB {
 type Application struct {
 	InfoLog *log.Logger
 	ErrorLog *log.Logger
-	Config *config.AppConfig
+	Config config.AppConfig
 	Database storage.ForumDB
 }
 
 func NewApplication() *Application {
 	errorLog := getErrorLog()
 	infoLog := getInfoLog()
-	AppConfig, err := config.LoadAppConfig()
-	if err != nil {
-		errorLog.Println(err)
-	}
+	AppConfig := config.WebConfig
 	infoLog.Println("Создание конфига приложения")
 	return &Application{
 		InfoLog: infoLog,
 		ErrorLog: errorLog,
-		Config: AppConfig,
+		Config: *AppConfig,
 		Database: getDatabaseConnection(AppConfig.DatabaseConfig.PathDB),
 	}
 }

@@ -63,10 +63,7 @@ func main() {
 }
 
 func getPathDB() string {
-	config, err := config.LoadAppConfig()
-	if err != nil {
-		panic(err)
-	}
+	config := config.WebConfig
 	return config.DatabaseConfig.PathDB
 }
 

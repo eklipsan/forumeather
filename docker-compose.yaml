@@ -3,8 +3,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.web
+    command: [
+      "--port=:8080",
+      "--api-key=nXbOjqDSC12ALe3s",
+    ]
     ports:
-      - 8080:8080
+      - 8080:8080 # change these ports as well as the above one
     volumes:
       - ./data/:/usr/bin/data
 

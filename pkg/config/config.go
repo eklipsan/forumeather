@@ -1,11 +1,11 @@
 package config
 
 import (
-	"os"
-
-	"github.com/joho/godotenv"
+	"flag"
 )
 
+var WebConfig = loadAppConfig()
+var pathDB = "data/forumeather.db"
 
 type AppConfig struct {
 	MeteoblueConfig meteoblueConfig
@@ -22,29 +22,24 @@ type networkConfig struct {
 }
 
 type meteoblueConfig struct {
-	URL string
 	APIKey string
-	TZ string
-	Format string
 }
 
-func LoadAppConfig() (*AppConfig, error) {
-	if err := godotenv.Load("data/.env"); err != nil {
-		return nil, err
-	} else {
-		return &AppConfig{
-			MeteoblueConfig: meteoblueConfig{
-			URL:     os.Getenv("METEOBLUE_URL"),
-			APIKey:  os.Getenv("METEOBLUE_API_KEY"),
-			TZ:      os.Getenv("METEOBLUE_TZ"),
-			Format:  os.Getenv("METEOBLUE_FORMAT"),
-			},
-			DatabaseConfig: databaseConfig{
-				PathDB: os.Getenv("DATABASE_PATH"),
-			},
-			NetworkConfig: networkConfig{
-				Port: os.Getenv("PORT"),
-			},
-		}, nil
+func loadAppConfig() (*AppConfig) {
+	api_key := flag.String("api-key", "nXbOjqDSC12ALe3s", "API key of meteoblue api forecast service. The default one is disabled and gives empty data values")
+	web_port := flag.String("port", ":8080", "Port to run the web server on.")
+
+	flag.Parse()
+	appConfig := &AppConfig{
+		MeteoblueConfig: meteoblueConfig{
+			APIKey:  *api_key,
+		},
+		DatabaseConfig: databaseConfig{
+			PathDB: pathDB,
+		},
+		NetworkConfig: networkConfig{
+			Port: *web_port,
+		},
 	}
+	return appConfig
 }

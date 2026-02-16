@@ -11,5 +11,5 @@ RUN apk --no-cache add ca-certificates
 COPY --from=build /go/src/app/bin/web-app .
 COPY ./ui ./ui
 COPY ./data ./data
-EXPOSE 8080
 ENTRYPOINT [ "./web-app" ]
+CMD ["--help"]
