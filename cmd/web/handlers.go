@@ -64,7 +64,7 @@ func (a Application) Home(w http.ResponseWriter, r *http.Request) {
 
 	searchQuery := r.URL.Query().Get("search")
 	currentPage := r.URL.Query().Get("page")
-	a.InfoLog.Printf("Получение параметров страницы searchQuery=%s, currentPage=%s\n", currentPage, searchQuery)
+	a.InfoLog.Printf("Получение параметров страницы searchQuery=%s, currentPage=%s\n", searchQuery, currentPage)
 
 	if currentPage == "" { currentPage = "1"}
 
