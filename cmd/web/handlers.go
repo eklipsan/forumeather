@@ -141,12 +141,15 @@ func (a Application) Home(w http.ResponseWriter, r *http.Request) {
 
 }
 
-type ForumTrendWeather struct {
+type forumTrendWeather struct {
 	ForumInfo ForumInfoCurrent
-	ForumTrend []ForumInfoTrend
+	ForumTrend []forumInfoTrend
+	LastUpdateTime time.Time
 }
 
-type ForumInfoTrend struct {
+var forumsTrendWeatherCash = make(map[int]forumTrendWeather)
+
+type forumInfoTrend struct {
 	Time string
 	WeatherFromPictocode string
 	TemperatureMax float64
@@ -163,7 +166,8 @@ type ForumInfoTrend struct {
 
 
 func (a Application) ForumPage(w http.ResponseWriter, r *http.Request) {
-	var ForumDaysTrend []ForumInfoTrend
+	var ForumDaysTrend []forumInfoTrend
+	var ForumPage forumTrendWeather
 	files := []string{
 		"./ui/html/forum.page.tmpl",
 		"./ui/html/base.layout.tmpl",
@@ -181,64 +185,82 @@ func (a Application) ForumPage(w http.ResponseWriter, r *http.Request) {
 	}
 	a.InfoLog.Printf("Получение id %d форума для прогноза погоды\n", forum_id_int)
 
-
-	forumDB, err := a.Database.GetForum(forum_id_int)
-	if err != nil {
-		a.serverError(w, err)
-		a.ErrorLog.Printf("Ошибка получения форума %s\n", err)
-	}
-	a.InfoLog.Println("Запрос одного форума:", forumDB)
-
-
-	forumLocation := meteoblue.NewLocation(forumDB.Latitude, forumDB.Longitude, forumDB.Name)
-	trendDayForecast, err := forumLocation.GetTrendDayForecast()
-	if err != nil {
-		a.serverError(w, err)
-		a.ErrorLog.Printf("Ошибка получения прогноза погоды %s\n", err)
-	}
-
-	ForumInfoCurrent := ForumInfoCurrent{
-		Name: forumDB.Name,
-		Place: forumDB.Place,
-		Topics: forumDB.Topics,
-		Temperature: 0.0,
-		Height: 0,
-	}
-
-	for dayIndex := 0; dayIndex < len(trendDayForecast.TrendDay.Time) - 4; dayIndex ++ {
-		var DayTrend ForumInfoTrend
-		// "2006-01-02 15:04:05" "YYYY-MM-DD hh:mm",
-		ParsedTime, err := time.Parse("2006-01-02 15:04", trendDayForecast.TrendDay.Time[dayIndex])
+	ForumPage, ok := forumsTrendWeatherCash[forum_id_int]
+	if ok {
+		a.InfoLog.Printf("Получение данных из кэша для форума %d\n", forum_id_int)
+		err = ts.Execute(w, ForumPage)
 		if err != nil {
 			a.serverError(w, err)
-			a.ErrorLog.Println(err)
+			a.ErrorLog.Printf("Ошибка выполнения шаблона %s\n", err)
 		}
 
-		DayTrend.Time = GetTimeLabel(ParsedTime)
-		DayTrend.WeatherFromPictocode = meteoblue.WeatherPictoCode[trendDayForecast.TrendDay.Pictocode[dayIndex]]
-		DayTrend.TemperatureMax = trendDayForecast.TrendDay.TemperatureMax[dayIndex]
-		DayTrend.TemperatureMin = trendDayForecast.TrendDay.TemperatureMin[dayIndex]
-		DayTrend.WindSpeedMean = trendDayForecast.TrendDay.WindspeedMean[dayIndex]
-		DayTrend.PrecipitationProbability = trendDayForecast.TrendDay.PrecipitationProbability[dayIndex]
-		DayTrend.Predictability = trendDayForecast.TrendDay.Predictability[dayIndex]
+		if IsTimeExpired(ForumPage.LastUpdateTime) {
+			a.InfoLog.Printf("Обновление данных в кэше для форума %d\n", forum_id_int)
+			delete(forumsTrendWeatherCash, forum_id_int)
+		}
+	} else {
+		a.InfoLog.Printf("Получение данных из базы для форума %d\n", forum_id_int)
+		forumDB, err := a.Database.GetForum(forum_id_int)
+		if err != nil {
+			a.serverError(w, err)
+			a.ErrorLog.Printf("Ошибка получения форума %s\n", err)
+		}
+		a.InfoLog.Println("Запрос одного форума:", forumDB)
 
-		DayTrend.CloudCoverMean = trendDayForecast.TrendDay.TotalcloudcoverMean[dayIndex]
-		DayTrend.RelativeHumidity = trendDayForecast.TrendDay.RelativehumidityMean[dayIndex]
-		DayTrend.SeaLevelPressure = trendDayForecast.TrendDay.SealevelpressureMean[dayIndex]
-		ForumDaysTrend = append(ForumDaysTrend, DayTrend)
-	}
 
-	ForumPage := ForumTrendWeather{
-		ForumInfo: ForumInfoCurrent,
-		ForumTrend: ForumDaysTrend,
-	}
+		forumLocation := meteoblue.NewLocation(forumDB.Latitude, forumDB.Longitude, forumDB.Name)
+		trendDayForecast, err := forumLocation.GetTrendDayForecast()
+		if err != nil {
+			a.serverError(w, err)
+			a.ErrorLog.Printf("Ошибка получения прогноза погоды %s\n", err)
+		}
 
-	err = ts.Execute(w, ForumPage)
-	if err != nil {
-		a.serverError(w, err)
-		a.ErrorLog.Printf("Ошибка выполнения шаблона %s\n", err)
+		ForumInfoCurrent := ForumInfoCurrent{
+			Name: forumDB.Name,
+			Place: forumDB.Place,
+			Topics: forumDB.Topics,
+			Temperature: 0.0,
+			Height: 0,
+		}
+
+		for dayIndex := 0; dayIndex < len(trendDayForecast.TrendDay.Time) - 4; dayIndex ++ {
+			var DayTrend forumInfoTrend
+			// "2006-01-02 15:04:05" "YYYY-MM-DD hh:mm",
+			ParsedTime, err := time.Parse("2006-01-02 15:04", trendDayForecast.TrendDay.Time[dayIndex])
+			if err != nil {
+				a.serverError(w, err)
+				a.ErrorLog.Println(err)
+			}
+
+			DayTrend.Time = GetTimeLabel(ParsedTime)
+			DayTrend.WeatherFromPictocode = meteoblue.WeatherPictoCode[trendDayForecast.TrendDay.Pictocode[dayIndex]]
+			DayTrend.TemperatureMax = trendDayForecast.TrendDay.TemperatureMax[dayIndex]
+			DayTrend.TemperatureMin = trendDayForecast.TrendDay.TemperatureMin[dayIndex]
+			DayTrend.WindSpeedMean = trendDayForecast.TrendDay.WindspeedMean[dayIndex]
+			DayTrend.PrecipitationProbability = trendDayForecast.TrendDay.PrecipitationProbability[dayIndex]
+			DayTrend.Predictability = trendDayForecast.TrendDay.Predictability[dayIndex]
+
+			DayTrend.CloudCoverMean = trendDayForecast.TrendDay.TotalcloudcoverMean[dayIndex]
+			DayTrend.RelativeHumidity = trendDayForecast.TrendDay.RelativehumidityMean[dayIndex]
+			DayTrend.SeaLevelPressure = trendDayForecast.TrendDay.SealevelpressureMean[dayIndex]
+			ForumDaysTrend = append(ForumDaysTrend, DayTrend)
+		}
+
+		ForumPage = forumTrendWeather{
+			ForumInfo: ForumInfoCurrent,
+			ForumTrend: ForumDaysTrend,
+			LastUpdateTime: time.Now(),
+		}
+
+		err = ts.Execute(w, ForumPage)
+		if err != nil {
+			a.serverError(w, err)
+			a.ErrorLog.Printf("Ошибка выполнения шаблона %s\n", err)
+		}
+		forumsTrendWeatherCash[forum_id_int] = ForumPage
+		a.InfoLog.Printf("Занесение форума id:%d в кэш\n", forum_id_int)
 	}
-	a.InfoLog.Printf("Отображение страницы форума %s\n", forumDB.Name)
+	a.InfoLog.Printf("Отображение страницы форума %s\n", ForumPage.ForumInfo.Name)
 }
 
 type NeuteredFileSystem struct {

@@ -30,6 +30,12 @@ func (app *Application) notFound(w http.ResponseWriter) {
 }
 
 
+// Проверка времени на срок действия (12 часов)
+func IsTimeExpired(t time.Time) bool {
+	return time.Since(t) > 12 * time.Hour
+}
+
+
 func GetTimeLabel(t time.Time) string {
 	date := t.Format("02.01.2006")
 	weekday := getRussianWeekday(t)
