@@ -11,16 +11,19 @@ import (
 	"github.com/eklipsan/forumeather/pkg/storage"
 )
 
+const (
+	hoursToExpireCurrent = 1
+	hoursToExpireTrend = 12
+)
 
-
-type ForumsCurrentWeather struct {
-	ForumsInfo []ForumInfoCurrent
+type forumsCurrentWeather struct {
+	ForumsInfo []forumInfoCurrent
 	SearchQuery string
 	TotalPages []int
 	CurrentPage int
 }
 
-type ForumInfoCurrent struct {
+type forumInfoCurrent struct {
 	ID int64
 	Name     string
 	Place string
@@ -29,17 +32,16 @@ type ForumInfoCurrent struct {
 	Height int64
 	Windspeed float64
 	WeatherFromPictocode string
+	LastUpdateTime time.Time
 }
 
-type SearchFilter struct {
-	Query string
-}
+var forumsInfoCurrentCash = make(map[int64]forumInfoCurrent)
 
 
 func (a Application) Home(w http.ResponseWriter, r *http.Request) {
 	var (
 		dbForums []storage.Forum
-		forums ForumsCurrentWeather
+		forums forumsCurrentWeather
 
 		SliceTotalPage []int
 		pageSize = 6
@@ -104,22 +106,36 @@ func (a Application) Home(w http.ResponseWriter, r *http.Request) {
         dbForums =  dbForums[start:end]
     }
 	for _, row := range dbForums {
-		forumLocation := meteoblue.NewLocation(row.Latitude, row.Longitude, row.Name)
-		forumCurrentForecast, err := forumLocation.GetCurrentForecast()
-		if err != nil {
-			a.serverError(w, err)
-			a.ErrorLog.Printf("Ошибка получения прогноза погоды %s\n", err)
+		forumInfo, ok := forumsInfoCurrentCash[row.ID]
+		if ok {
+			a.InfoLog.Printf("Получение из кэша текущего прогноза форума id: %d", row.ID)
+			if IsTimeExpired(forumInfo.LastUpdateTime, hoursToExpireCurrent) {
+				delete(forumsInfoCurrentCash, row.ID)
+				a.InfoLog.Printf("Обновление данных в кэше для текущего прогноза форума id: %d\n", row.ID)
+			}
+		} else {
+			a.InfoLog.Printf("Запрос API для текущего прогноза форума id: %d", row.ID)
+			forumLocation := meteoblue.NewLocation(row.Latitude, row.Longitude, row.Name)
+			forumCurrentForecast, err := forumLocation.GetCurrentForecast()
+			if err != nil {
+				a.serverError(w, err)
+				a.ErrorLog.Printf("Ошибка получения прогноза погоды %s\n", err)
+			}
+			forumInfo = forumInfoCurrent{
+				ID: row.ID,
+				Name: row.Name,
+				Place: row.Place,
+				Topics: row.Topics,
+				Temperature: forumCurrentForecast.DataCurrent.Temperature,
+				Height: forumCurrentForecast.Metadata.Height,
+				Windspeed: forumCurrentForecast.DataCurrent.Windspeed,
+				WeatherFromPictocode: meteoblue.WeatherPictoCode[forumCurrentForecast.DataCurrent.PictocodeDetailed],
+			}
+			a.InfoLog.Printf("Запись в кэш текущего прогноза форума id: %d", row.ID)
+			forumInfo.LastUpdateTime = time.Now()
+			forumsInfoCurrentCash[row.ID] = forumInfo
 		}
-		forumInfo := ForumInfoCurrent{
-			ID: row.ID,
-			Name: row.Name,
-			Place: row.Place,
-			Topics: row.Topics,
-			Temperature: forumCurrentForecast.DataCurrent.Temperature,
-			Height: forumCurrentForecast.Metadata.Height,
-			Windspeed: forumCurrentForecast.DataCurrent.Windspeed,
-			WeatherFromPictocode: meteoblue.WeatherPictoCode[forumCurrentForecast.DataCurrent.PictocodeDetailed],
-		}
+
 		forums.ForumsInfo = append(forums.ForumsInfo, forumInfo)
 	}
 
@@ -142,7 +158,7 @@ func (a Application) Home(w http.ResponseWriter, r *http.Request) {
 }
 
 type forumTrendWeather struct {
-	ForumInfo ForumInfoCurrent
+	ForumInfo forumInfoCurrent
 	ForumTrend []forumInfoTrend
 	LastUpdateTime time.Time
 }
@@ -194,7 +210,7 @@ func (a Application) ForumPage(w http.ResponseWriter, r *http.Request) {
 			a.ErrorLog.Printf("Ошибка выполнения шаблона %s\n", err)
 		}
 
-		if IsTimeExpired(ForumPage.LastUpdateTime) {
+		if IsTimeExpired(ForumPage.LastUpdateTime, hoursToExpireTrend) {
 			a.InfoLog.Printf("Обновление данных в кэше для форума %d\n", forum_id_int)
 			delete(forumsTrendWeatherCash, forum_id_int)
 		}
@@ -215,7 +231,7 @@ func (a Application) ForumPage(w http.ResponseWriter, r *http.Request) {
 			a.ErrorLog.Printf("Ошибка получения прогноза погоды %s\n", err)
 		}
 
-		ForumInfoCurrent := ForumInfoCurrent{
+		ForumInfoCurrent := forumInfoCurrent{
 			Name: forumDB.Name,
 			Place: forumDB.Place,
 			Topics: forumDB.Topics,

@@ -31,8 +31,8 @@ func (app *Application) notFound(w http.ResponseWriter) {
 
 
 // Проверка времени на срок действия (12 часов)
-func IsTimeExpired(t time.Time) bool {
-	return time.Since(t) > 12 * time.Hour
+func IsTimeExpired(t time.Time, hoursToExpire int) bool {
+	return time.Since(t) > hoursToExpireCurrent * time.Hour
 }
 
 
