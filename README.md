@@ -3,6 +3,8 @@
 
 **Forumeather** is a Go-based application designed to track youth forums and provide up-to-date weather forecasts at their locations. The project combines a forum database with integration into the Meteoblue weather service.
 
+![Site's presentation](forumeather_readme.gif)
+
 ## Project Essence
 
 The application allows you to store information about various forums (name, location, topics, coordinates) and view the current weather or daily trend for these locations. The project consists of two main parts:
