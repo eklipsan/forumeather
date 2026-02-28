@@ -25,7 +25,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
+	fmt.Println("Добавить форум: 0")
+	fmt.Println("Удалить форум: 1")
+	fmt.Println("Показать все форумы: 2")
 	fmt.Println("Введите код операции:")
 	fmt.Scanln(&operation)
 	switch operation {
@@ -58,8 +60,8 @@ func main() {
 		}
 	default:
 		fmt.Println("Неверный код операции")
-		main()
 	}
+	main()
 }
 
 func getPathDB() string {
